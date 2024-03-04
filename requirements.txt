@@ -1,0 +1,6 @@
+jupyter
+pandas
+shapely
+plotly
+ipinfo
+numpy
