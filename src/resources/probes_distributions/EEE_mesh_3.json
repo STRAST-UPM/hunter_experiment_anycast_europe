@@ -1,0 +1,9 @@
+{
+  "probes_per_section": 1,
+  "spacing": 3,
+  "countries": [
+    "DE", "BE", "HR", "DK", "ES", "FR", "IE", "LV", "LU", "NL", "BG", "SK",
+    "SI", "EE", "GR", "MT", "PL", "CZ", "AT", "CY", "FI", "HU", "IT", "LT",
+    "PT", "RO", "IS", "LI", "NO", "SE"
+  ]
+}

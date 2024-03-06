@@ -4,3 +4,4 @@ shapely
 plotly
 ipinfo
 numpy
+requests
