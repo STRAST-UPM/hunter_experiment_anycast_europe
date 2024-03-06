@@ -11,7 +11,8 @@ from src.utils.common_functions import (
     json_file_to_dict,
     dict_to_json_file,
     get_list_files_in_path,
-    distance_dictionaries
+    distance_dictionaries,
+    get_nearest_airport_to_point
 )
 from src.utils.constants import (
     REPLICATION_PACKAGE_DIR
@@ -20,30 +21,6 @@ from src.utils.constants import (
 EXPERIMENT_RESULTS_FOLDER = \
     f"{REPLICATION_PACKAGE_DIR}/experiment_results_first_ip"
 NEW_RESULTS_FOLDER = f"{REPLICATION_PACKAGE_DIR}/experiment_results_voting"
-
-
-def get_nearest_airport_to_point(point: Point) -> dict:
-    airports_df = pd.read_csv("../src/resources/airports.csv", sep="\t")
-    airports_df.drop(["pop",
-                      "heuristic",
-                      "1", "2", "3"], axis=1, inplace=True)
-
-    airports_df["distance"] = airports_df["lat long"].apply(
-        lambda airport_location: distance_dictionaries(
-            a={
-                "latitude": point.y,
-                "longitude": point.x
-            },
-            b={
-                "latitude": float(airport_location.split(" ")[0]),
-                "longitude": float(airport_location.split(" ")[1])
-            }
-        )
-    )
-
-    return airports_df[
-        airports_df["distance"] == airports_df["distance"].min()
-        ].to_dict("records")[0]
 
 
 def save_new_results(data_to_save: dict, filename: str):

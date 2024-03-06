@@ -6,9 +6,14 @@ import os
 import json
 import socket
 import math
+from shapely import (
+    Point
+)
+import pandas as pd
 # internal imports
 from src.utils.constants import (
-    EARTH_RADIUS_KM
+    EARTH_RADIUS_KM,
+    AIRPORTS_FILEPATH
 )
 
 
@@ -114,3 +119,27 @@ def distance_dictionaries(a: dict, b: dict) -> float:
     # Remember to multiply arc by the radius of the earth
     # in your favorite set of units to get length.
     return arc * EARTH_RADIUS_KM
+
+
+def get_nearest_airport_to_point(point: Point) -> dict:
+    airports_df = pd.read_csv(AIRPORTS_FILEPATH, sep="\t")
+    airports_df.drop(["pop",
+                      "heuristic",
+                      "1", "2", "3"], axis=1, inplace=True)
+
+    airports_df["distance"] = airports_df["lat long"].apply(
+        lambda airport_location: distance_dictionaries(
+            a={
+                "latitude": point.y,
+                "longitude": point.x
+            },
+            b={
+                "latitude": float(airport_location.split(" ")[0]),
+                "longitude": float(airport_location.split(" ")[1])
+            }
+        )
+    )
+
+    return airports_df[
+        airports_df["distance"] == airports_df["distance"].min()
+        ].to_dict("records")[0]

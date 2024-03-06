@@ -15,6 +15,7 @@ __SRC_DIR = f"{__BASE_DIR}/src"
 
 __RESOURCES_DIR = f"{__SRC_DIR}/resources"
 KEYS_FILEPATH = f"{__RESOURCES_DIR}/keys.json"
+AIRPORTS_FILEPATH = f"{__RESOURCES_DIR}/airports.csv"
 __COUNTRIES_SETS_DIR = f"{__RESOURCES_DIR}/countries_sets"
 EEE_COUNTRIES_FILEPATH = f"{__COUNTRIES_SETS_DIR}/EEE_countries.json"
 
