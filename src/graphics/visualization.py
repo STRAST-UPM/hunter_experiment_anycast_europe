@@ -80,6 +80,10 @@ def add_hunter_result_geo_trace(
     )
 
 
+def add_result_trace(fig: go.Figure, filename: str):
+    pass
+
+
 def update_geo_layout(fig: go.Figure):
     fig.update_geos(
         visible=False,
