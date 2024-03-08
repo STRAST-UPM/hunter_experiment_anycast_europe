@@ -5,22 +5,19 @@
 import plotly.graph_objects as go
 from shapely import (
     Point,
-    Polygon,
-    MultiPolygon,
     from_geojson
 )
 
 # internal imports
-from src.models.hunter_info_model import HunterInfoModel
-from src.models.hunter_result_model import HunterResultModel
-from src.models.hunter_measurement_model import HunterMeasurementModel
 from src.models.mesh_model import MeshModel
 from src.utils.common_functions import (
-    json_file_to_dict,
-    convert_km_radius_to_degrees,
+    json_file_to_dict
+)
+from src.utils.constants import (
+    EEE_MESH_3_FILEPATH
 )
 
-MESH_FILEPATH = "src/mesh_definitions/EEE_mesh_3.json"
+MESH_FILEPATH = EEE_MESH_3_FILEPATH
 
 
 def add_mesh_geo_trace(fig: go.Figure):
@@ -125,4 +122,4 @@ def visualize_hunter_info(filepath: str):
     fig.show()
 
 
-visualize_hunter_info("3.33.135.48_mesh_20240222_23:15:52_original.json")
+visualize_hunter_info("../../replication_package_europe_anycast_experiment/experiment_results_first_ip/3.33.135.48_mesh_20240222_23:15:52.json")

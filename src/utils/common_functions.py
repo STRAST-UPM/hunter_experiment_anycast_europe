@@ -13,7 +13,8 @@ import pandas as pd
 # internal imports
 from src.utils.constants import (
     EARTH_RADIUS_KM,
-    AIRPORTS_FILEPATH
+    AIRPORTS_FILEPATH,
+    ALL_COUNTRIES_FILEPATH
 )
 
 
@@ -121,6 +122,11 @@ def distance_dictionaries(a: dict, b: dict) -> float:
     return arc * EARTH_RADIUS_KM
 
 
+def convert_km_radius_to_degrees(km_radius: float) -> float:
+    degree = km_radius * (360 / (2 * EARTH_RADIUS_KM * math.pi))
+    return degree
+
+
 def get_nearest_airport_to_point(point: Point) -> dict:
     airports_df = pd.read_csv(AIRPORTS_FILEPATH, sep="\t")
     airports_df.drop(["pop",
@@ -143,3 +149,10 @@ def get_nearest_airport_to_point(point: Point) -> dict:
     return airports_df[
         airports_df["distance"] == airports_df["distance"].min()
         ].to_dict("records")[0]
+
+
+def get_country_name(country_code: str) -> str:
+    all_countries_list = json_file_to_dict(ALL_COUNTRIES_FILEPATH)
+    for country in all_countries_list:
+        if country["alpha-2"] == country_code:
+            return country["name"]
