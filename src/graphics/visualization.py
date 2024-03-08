@@ -44,7 +44,7 @@ def add_hunter_result_geo_trace(
             lat=[origin.y],
             mode="markers",
             marker={
-                "size": 10,
+                # "size": 10,
                 "color": "red",
                 "symbol": "circle"
             },
@@ -73,7 +73,7 @@ def add_hunter_result_geo_trace(
             lon=[origin.x, destination.x],
             lat=[origin.y, destination.y],
             mode="lines",
-            marker={"color": "blue"},
+            marker={"color": "gray"},
             name="routes",
             showlegend=False
         )
@@ -94,7 +94,7 @@ def visualize_hunter_info(filepath: str):
     fig = go.Figure()
 
     # Mesh trace
-    add_mesh_geo_trace(fig)
+    # add_mesh_geo_trace(fig)
 
     # Hunter results trace
     hunter_info = json_file_to_dict(filepath)
