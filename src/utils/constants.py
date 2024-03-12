@@ -41,6 +41,7 @@ IT_ANNOTATION_FILEPATH = \
     f"{REPLICATION_PACKAGE_DIR}/it_annotation_results_Dec_2023.csv"
 IT_ANNOTATION_AGGREGATION_FILEPATH = \
     f"{REPLICATION_PACKAGE_DIR}/it_annotation_results_Dec_2023_aggregation.csv"
+TPLS_RESULTS_FILEPATH = f"{REPLICATION_PACKAGE_DIR}/TPLs_results.csv"
 
 # RIPE ATLAS API URLS
 __RIPE_ATLAS_API_BASE_URL = "https://atlas.ripe.net/api/v2/"

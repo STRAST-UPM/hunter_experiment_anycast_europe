@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # external imports
+import pandas as pd
 import plotly.graph_objects as go
 from shapely import (
     Point,
@@ -14,11 +15,12 @@ from src.utils.common_functions import (
     json_file_to_dict
 )
 from src.utils.constants import (
-    EEE_MESH_3_FILEPATH
+    EEE_MESH_3_FILEPATH,
+    RESULTS_MODES
 )
 
 MESH_FILEPATH = EEE_MESH_3_FILEPATH
-
+ACTUAL_MODE = RESULTS_MODES[0]
 
 def add_mesh_geo_trace(fig: go.Figure):
     mesh = MeshModel(mesh_filepath=MESH_FILEPATH)
@@ -37,7 +39,10 @@ def add_mesh_geo_trace(fig: go.Figure):
 
 
 def add_hunter_result_geo_trace(
-        fig: go.Figure, origin: Point, destination: Point):
+        fig: go.Figure,
+        origin: Point,
+        destination: Point):
+
     fig.add_trace(
         go.Scattergeo(
             lon=[origin.x],
@@ -94,7 +99,7 @@ def update_geo_layout(fig: go.Figure):
     )
 
 
-def visualize_hunter_info(filepath: str):
+def visualize_hunter_result(filepath: str):
     fig = go.Figure()
 
     # Mesh trace
@@ -126,4 +131,74 @@ def visualize_hunter_info(filepath: str):
     fig.show()
 
 
-visualize_hunter_info("../../replication_package_europe_anycast_experiment/experiment_results_first_ip/3.33.135.48_mesh_20240222_23:15:52.json")
+def visualize_hunter_routes_results(filepath: str):
+    fig = go.Figure()
+
+    routes_results_df = pd.read_csv(filepath, sep=",")
+    routes_results_df = routes_results_df.loc[
+        routes_results_df["outside_EEE"]
+    ]
+
+    origins_latitudes = routes_results_df["origin_latitude"].to_list()
+    origins_longitudes = routes_results_df["origin_longitude"].to_list()
+    results_latitudes = routes_results_df["result_latitude"].to_list()
+    results_longitudes = routes_results_df["result_longitude"].to_list()
+
+    routes_latitudes = [
+        item for sublist in zip(origins_latitudes, results_latitudes)
+        for item in sublist
+    ]
+    routes_longitudes = [
+        item for sublist in zip(origins_longitudes, results_longitudes)
+        for item in sublist
+    ]
+
+    fig.add_trace(
+        go.Scattergeo(
+            lon=origins_longitudes,
+            lat=origins_latitudes,
+            mode="markers",
+            marker={
+                # "size": 10,
+                "color": "red",
+                "symbol": "circle"
+            },
+            name="origins",
+            showlegend=False
+        )
+    )
+
+    fig.add_trace(
+        go.Scattergeo(
+            lon=results_longitudes,
+            lat=results_latitudes,
+            mode="markers",
+            marker={
+                # "size": 10,
+                "color": "black",
+                "symbol": "x"
+            },
+            name="destinations",
+            showlegend=False
+        )
+    )
+
+    fig.add_trace(
+        go.Scattergeo(
+            lon=routes_longitudes,
+            lat=routes_latitudes,
+            mode="lines",
+            marker={"color": "gray"},
+            name="routes",
+            showlegend=False
+        )
+    )
+
+    # Layout
+    update_geo_layout(fig)
+    fig.show()
+
+
+visualize_hunter_routes_results(
+    f"../../replication_package_europe_anycast_experiment/analysis_{ACTUAL_MODE}/routes_results_{ACTUAL_MODE}.csv"
+)
