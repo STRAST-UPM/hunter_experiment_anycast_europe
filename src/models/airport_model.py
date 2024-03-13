@@ -37,6 +37,10 @@ class AirportModel:
     def city_name(self):
         return self._city_name
 
+    @property
+    def location(self):
+        return self._location
+
     # Class particular methods
 
     # Model common methods
