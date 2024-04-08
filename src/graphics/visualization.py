@@ -20,7 +20,7 @@ from src.utils.constants import (
 )
 
 MESH_FILEPATH = EEE_MESH_3_FILEPATH
-ACTUAL_MODE = RESULTS_MODES[0]
+
 
 def add_mesh_geo_trace(fig: go.Figure):
     mesh = MeshModel(mesh_filepath=MESH_FILEPATH)
@@ -136,7 +136,7 @@ def visualize_hunter_routes_results(filepath: str):
 
     routes_results_df = pd.read_csv(filepath, sep=",")
     routes_results_df = routes_results_df.loc[
-        routes_results_df["outside_EEE"]
+        (routes_results_df["outside_EEE"] == True)
     ]
 
     origins_latitudes = routes_results_df["origin_latitude"].to_list()
@@ -199,6 +199,7 @@ def visualize_hunter_routes_results(filepath: str):
     fig.show()
 
 
+ACTUAL_MODE = RESULTS_MODES[1]
 visualize_hunter_routes_results(
     f"../../replication_package_europe_anycast_experiment/analysis_{ACTUAL_MODE}/routes_results_{ACTUAL_MODE}.csv"
 )
