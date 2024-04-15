@@ -16,6 +16,7 @@ from src.utils.common_functions import (
 )
 from src.utils.constants import (
     EEE_MESH_3_FILEPATH,
+    PARTIAL_RESULTS_DIR,
     RESULTS_MODES
 )
 
@@ -199,7 +200,14 @@ def visualize_hunter_routes_results(filepath: str):
     fig.show()
 
 
-ACTUAL_MODE = RESULTS_MODES[1]
+# Countries
+# ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR',
+# 'HR', 'HU', 'IE', 'IS', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'NO', 'PL',
+# 'PT', 'RO', 'SE', 'SI', 'SK', 'LI']
+
+ANALYSIS_MODE = RESULTS_MODES[1]
+origin_country = "DK"
 visualize_hunter_routes_results(
-    f"../../replication_package_europe_anycast_experiment/analysis_{ACTUAL_MODE}/routes_results_{ACTUAL_MODE}.csv"
-)
+    f"{PARTIAL_RESULTS_DIR}"
+    f"/routes_results_{ANALYSIS_MODE}_{origin_country}.csv")
+
