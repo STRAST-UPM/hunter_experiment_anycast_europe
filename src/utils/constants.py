@@ -3,8 +3,11 @@
 
 # external imports
 import os
+from dotenv import load_dotenv, find_dotenv
 # internal imports
 
+
+load_dotenv(find_dotenv())
 # PATHS CONSTANTS
 __BASE_DIR = \
     (f"{os.path.dirname(os.path.dirname(os.path.abspath(__file__)))}".
@@ -48,6 +51,9 @@ PARTIAL_RESULTS_DIR = f"{REPLICATION_PACKAGE_DIR}/partial_results"
 # RIPE ATLAS API URLS
 __RIPE_ATLAS_API_BASE_URL = "https://atlas.ripe.net/api/v2/"
 RIPE_ATLAS_PROBES_BASE_URL = __RIPE_ATLAS_API_BASE_URL + "probes/"
+
+# API Cache IPinfo
+IP_URL = str(os.getenv("CACHE_IP_URL")) or ""
 
 # OTHERS
 EARTH_RADIUS_KM = 6371

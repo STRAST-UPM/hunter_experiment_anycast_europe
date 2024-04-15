@@ -4,6 +4,8 @@
 # external imports
 import pandas as pd
 import plotly.graph_objects as go
+import requests
+import json
 from shapely import (
     Point,
     from_geojson
@@ -17,7 +19,8 @@ from src.utils.common_functions import (
 from src.utils.constants import (
     EEE_MESH_3_FILEPATH,
     PARTIAL_RESULTS_DIR,
-    RESULTS_MODES
+    RESULTS_MODES,
+    IP_URL
 )
 
 MESH_FILEPATH = EEE_MESH_3_FILEPATH
@@ -200,14 +203,36 @@ def visualize_hunter_routes_results(filepath: str):
     fig.show()
 
 
+def get_ip_location_via_cache(ip_address: str):
+    url = f"{IP_URL}/{ip_address}"
+    details = json.loads(requests.get(
+        url=url).json()["details"])
+    anycast = False
+    if "bogon" in details.keys():
+        return 0, 0, False
+
+    if "anycast" in details.keys():
+        anycast = details["anycast"]
+
+    return details["longitude"], details["latitude"], anycast
+
+
+def visualize_complete_route():
+    pass
+
+
+# Show one country results
 # Countries
 # ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR',
 # 'HR', 'HU', 'IE', 'IS', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'NO', 'PL',
 # 'PT', 'RO', 'SE', 'SI', 'SK', 'LI']
+# ANALYSIS_MODE = RESULTS_MODES[1]
+# origin_country = "DK"
+# visualize_hunter_routes_results(
+#     f"{PARTIAL_RESULTS_DIR}"
+#     f"/routes_results_{ANALYSIS_MODE}_{origin_country}.csv")
 
-ANALYSIS_MODE = RESULTS_MODES[1]
-origin_country = "DK"
-visualize_hunter_routes_results(
-    f"{PARTIAL_RESULTS_DIR}"
-    f"/routes_results_{ANALYSIS_MODE}_{origin_country}.csv")
-
+# Show suspicious routes
+suspicious_routes_df = pd.read_csv(
+    f"{PARTIAL_RESULTS_DIR}/voting/suspicious_results_voting.csv")
+print(get_ip_location_via_cache("34.111.75.154"))
