@@ -142,11 +142,12 @@ def visualize_hunter_routes_results(filepath: str):
 
     routes_results_df = pd.read_csv(filepath, sep=",")
     routes_results_df = routes_results_df.loc[
-        (routes_results_df["outside_EEE"] == True)
+        (routes_results_df["outside_EEE"] == True) &
+        (routes_results_df["origin_country"] == "DK")
     ]
 
-    origins_latitudes = routes_results_df["capital_origin_latitude"].to_list()
-    origins_longitudes = routes_results_df["capital_origin_longitude"].to_list()
+    origins_latitudes = routes_results_df["origin_latitude"].to_list()
+    origins_longitudes = routes_results_df["origin_longitude"].to_list()
     results_latitudes = routes_results_df["result_latitude"].to_list()
     results_longitudes = routes_results_df["result_longitude"].to_list()
 
