@@ -9,12 +9,14 @@ import math
 from shapely import (
     Point
 )
+import requests
 import pandas as pd
 # internal imports
 from src.utils.constants import (
     EARTH_RADIUS_KM,
     AIRPORTS_FILEPATH,
-    ALL_COUNTRIES_FILEPATH
+    ALL_COUNTRIES_FILEPATH,
+    IP_URL
 )
 
 
@@ -156,3 +158,18 @@ def get_country_name(country_code: str) -> str:
     for country in all_countries_list:
         if country["alpha-2"] == country_code:
             return country["name"]
+
+
+def get_ip_details_via_cache(ip_address: str) -> dict:
+    url = f"{IP_URL}/{ip_address}"
+    print(url)
+    details = json.loads(requests.get(url=url).json()["details"])
+    return details
+
+
+def get_ip_country_via_cache(ip_address: str) -> str:
+    ip_details = get_ip_details_via_cache(ip_address)
+    if "bogon" in ip_details.keys():
+        return "bogon"
+    else:
+        return ip_details["country"]
