@@ -142,12 +142,12 @@ def visualize_hunter_routes_results(filepath: str):
 
     routes_results_df = pd.read_csv(filepath, sep=",")
     routes_results_df = routes_results_df.loc[
-        (routes_results_df["outside_EEE"] == True) &
-        (routes_results_df["origin_country"] == "DK")
+        (routes_results_df["outside_EEE"] == True)
+        # & (routes_results_df["origin_country"] == "DK")
     ]
 
-    origins_latitudes = routes_results_df["origin_latitude"].to_list()
-    origins_longitudes = routes_results_df["origin_longitude"].to_list()
+    origins_latitudes = routes_results_df["capital_origin_latitude"].to_list()
+    origins_longitudes = routes_results_df["capital_origin_longitude"].to_list()
     results_latitudes = routes_results_df["result_latitude"].to_list()
     results_longitudes = routes_results_df["result_longitude"].to_list()
 
@@ -262,13 +262,9 @@ def visualize_complete_route(route_locations: list):
 # 'HR', 'HU', 'IE', 'IS', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'NO', 'PL',
 # 'PT', 'RO', 'SE', 'SI', 'SK', 'LI']
 ANALYSIS_MODE = RESULTS_MODES[1]
-origin_country = "DK"
-#visualize_hunter_routes_results(
-#    f"{PARTIAL_RESULTS_DIR}"
-#    f"/routes_results_{ANALYSIS_MODE}_{origin_country}.csv")
 visualize_hunter_routes_results(
-    f"{REPLICATION_PACKAGE_DIR}/analysis_{ANALYSIS_MODE}_repetitions_1/"
-    f"routes_results_{ANALYSIS_MODE}.csv")
+    f"{REPLICATION_PACKAGE_DIR}/analysis_{ANALYSIS_MODE}/"
+    f"routes_results_non_suspicious_{ANALYSIS_MODE}.csv")
 
 
 # Show suspicious routes
