@@ -137,17 +137,40 @@ def visualize_hunter_result(filepath: str):
     fig.show()
 
 
-def visualize_hunter_routes_results(filepath: str):
+def visualize_hunter_routes_results(
+        filepath: str,
+        origin_country_filter: list[str] = None,
+        destination_country_filter: list[str] = None,
+        capital_aggregation: bool = False,
+):
     fig = go.Figure()
 
     routes_results_df = pd.read_csv(filepath, sep=",")
     routes_results_df = routes_results_df.loc[
         (routes_results_df["outside_EEE"] == True)
-        # & (routes_results_df["origin_country"] == "DK")
     ]
 
-    origins_latitudes = routes_results_df["capital_origin_latitude"].to_list()
-    origins_longitudes = routes_results_df["capital_origin_longitude"].to_list()
+    if origin_country_filter:
+        routes_results_df = routes_results_df.loc[
+            (routes_results_df["origin_country"].isin(
+                origin_country_filter))
+        ]
+
+    if destination_country_filter:
+        routes_results_df = routes_results_df.loc[
+            (routes_results_df["result_country"].isin(
+                destination_country_filter))
+        ]
+
+    if capital_aggregation:
+        origin_latitude = "capital_origin_latitude"
+        origin_longitude = "capital_origin_longitude"
+    else:
+        origin_latitude = "origin_latitude"
+        origin_longitude = "origin_longitude"
+
+    origins_latitudes = routes_results_df[origin_latitude].to_list()
+    origins_longitudes = routes_results_df[origin_longitude].to_list()
     results_latitudes = routes_results_df["result_latitude"].to_list()
     results_longitudes = routes_results_df["result_longitude"].to_list()
 
@@ -264,7 +287,11 @@ def visualize_complete_route(route_locations: list):
 ANALYSIS_MODE = RESULTS_MODES[1]
 visualize_hunter_routes_results(
     f"{REPLICATION_PACKAGE_DIR}/analysis_{ANALYSIS_MODE}/"
-    f"routes_results_non_suspicious_{ANALYSIS_MODE}.csv")
+    f"routes_results_non_suspicious_{ANALYSIS_MODE}.csv",
+    #origin_country_filter=["AT"],
+    destination_country_filter=["RU"],
+    capital_aggregation=False
+)
 
 
 # Show suspicious routes
