@@ -6,7 +6,6 @@ import pandas as pd
 import plotly.graph_objects as go
 import requests
 import json
-from ast import literal_eval
 from shapely import (
     Point,
     from_geojson
@@ -19,7 +18,6 @@ from src.utils.common_functions import (
 )
 from src.utils.constants import (
     EEE_MESH_3_FILEPATH,
-    PARTIAL_RESULTS_DIR,
     IP_URL,
     RESULTS_MODES,
     REPLICATION_PACKAGE_DIR
@@ -139,6 +137,7 @@ def visualize_hunter_result(filepath: str):
 
 def visualize_hunter_routes_results(
         filepath: str,
+        only_out_of_EEE: bool = False,
         origin_country_filter: list[str] = None,
         destination_country_filter: list[str] = None,
         capital_aggregation: bool = False,
@@ -146,17 +145,19 @@ def visualize_hunter_routes_results(
     fig = go.Figure()
 
     routes_results_df = pd.read_csv(filepath, sep=",")
-    routes_results_df = routes_results_df.loc[
-        (routes_results_df["outside_EEE"] == True)
-    ]
+    # Filters application
+    if only_out_of_EEE:
+        routes_results_df = routes_results_df.loc[
+            (routes_results_df["outside_EEE"] == only_out_of_EEE)
+        ]
 
-    if origin_country_filter:
+    if origin_country_filter and origin_country_filter != []:
         routes_results_df = routes_results_df.loc[
             (routes_results_df["origin_country"].isin(
                 origin_country_filter))
         ]
 
-    if destination_country_filter:
+    if destination_country_filter and destination_country_filter != []:
         routes_results_df = routes_results_df.loc[
             (routes_results_df["result_country"].isin(
                 destination_country_filter))
@@ -288,8 +289,9 @@ ANALYSIS_MODE = RESULTS_MODES[1]
 visualize_hunter_routes_results(
     f"{REPLICATION_PACKAGE_DIR}/analysis_{ANALYSIS_MODE}/"
     f"routes_results_non_suspicious_{ANALYSIS_MODE}.csv",
-    #origin_country_filter=["AT"],
-    destination_country_filter=["RU"],
+    only_out_of_EEE=True,
+    origin_country_filter=["ES"],
+    destination_country_filter=[],
     capital_aggregation=False
 )
 
