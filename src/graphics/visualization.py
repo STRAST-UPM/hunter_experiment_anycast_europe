@@ -170,10 +170,14 @@ def visualize_hunter_routes_results(
         origin_latitude = "origin_latitude"
         origin_longitude = "origin_longitude"
 
-    origins_latitudes = routes_results_df[origin_latitude].to_list()
-    origins_longitudes = routes_results_df[origin_longitude].to_list()
-    results_latitudes = routes_results_df["result_latitude"].to_list()
-    results_longitudes = routes_results_df["result_longitude"].to_list()
+    routes_unique_df = routes_results_df[[
+        origin_latitude, origin_longitude,
+        "result_latitude", "result_longitude"]].drop_duplicates()
+
+    origins_latitudes = routes_unique_df[origin_latitude].to_list()
+    origins_longitudes = routes_unique_df[origin_longitude].to_list()
+    results_latitudes = routes_unique_df["result_latitude"].to_list()
+    results_longitudes = routes_unique_df["result_longitude"].to_list()
 
     routes_latitudes = [
         item for sublist in zip(origins_latitudes, results_latitudes)
@@ -290,9 +294,9 @@ visualize_hunter_routes_results(
     f"{REPLICATION_PACKAGE_DIR}/analysis_{ANALYSIS_MODE}/"
     f"routes_results_non_suspicious_{ANALYSIS_MODE}.csv",
     only_out_of_EEE=True,
-    origin_country_filter=["ES"],
+    origin_country_filter=[],
     destination_country_filter=[],
-    capital_aggregation=False
+    capital_aggregation=True
 )
 
 
