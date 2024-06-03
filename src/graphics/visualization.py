@@ -25,7 +25,6 @@ from src.utils.constants import (
 
 MESH_FILEPATH = EEE_MESH_3_FILEPATH
 
-
 def add_mesh_geo_trace(fig: go.Figure):
     mesh = MeshModel(mesh_filepath=MESH_FILEPATH)
     for polygon in list(mesh.mesh.geoms):
@@ -172,62 +171,77 @@ def visualize_hunter_routes_results(
 
     routes_unique_df = routes_results_df[[
         origin_latitude, origin_longitude,
-        "result_latitude", "result_longitude"]].drop_duplicates()
+        "result_latitude", "result_longitude",
+        "result_country"
+    ]].drop_duplicates()
 
-    origins_latitudes = routes_unique_df[origin_latitude].to_list()
-    origins_longitudes = routes_unique_df[origin_longitude].to_list()
-    results_latitudes = routes_unique_df["result_latitude"].to_list()
-    results_longitudes = routes_unique_df["result_longitude"].to_list()
+    destination_countries_list = routes_unique_df[
+        "result_country"].unique().tolist()
 
-    routes_latitudes = [
-        item for sublist in zip(origins_latitudes, results_latitudes)
-        for item in sublist
-    ]
-    routes_longitudes = [
-        item for sublist in zip(origins_longitudes, results_longitudes)
-        for item in sublist
-    ]
+    for destination_country in destination_countries_list:
+        origins_latitudes = routes_unique_df.loc[
+            routes_unique_df["result_country"] == destination_country
+        ][origin_latitude].to_list()
+        origins_longitudes = routes_unique_df.loc[
+            routes_unique_df["result_country"] == destination_country
+            ][origin_longitude].to_list()
+        results_latitudes = routes_unique_df.loc[
+            routes_unique_df["result_country"] == destination_country
+            ]["result_latitude"].to_list()
+        results_longitudes = routes_unique_df.loc[
+            routes_unique_df["result_country"] == destination_country
+            ]["result_longitude"].to_list()
 
-    fig.add_trace(
-        go.Scattergeo(
-            lon=origins_longitudes,
-            lat=origins_latitudes,
-            mode="markers",
-            marker={
-                # "size": 10,
-                "color": "red",
-                "symbol": "circle"
-            },
-            name="origins",
-            showlegend=False
+        routes_latitudes = [
+            item for sublist in zip(origins_latitudes, results_latitudes)
+            for item in sublist
+        ]
+        routes_longitudes = [
+            item for sublist in zip(origins_longitudes, results_longitudes)
+            for item in sublist
+        ]
+
+        fig.add_trace(
+            go.Scattergeo(
+                lon=origins_longitudes,
+                lat=origins_latitudes,
+                mode="markers",
+                marker={
+                    # "size": 10,
+                    "color": "black",
+                    "symbol": "circle"
+                },
+                name="origins",
+                showlegend=False
+            )
         )
-    )
 
-    fig.add_trace(
-        go.Scattergeo(
-            lon=results_longitudes,
-            lat=results_latitudes,
-            mode="markers",
-            marker={
-                # "size": 10,
-                "color": "black",
-                "symbol": "x"
-            },
-            name="destinations",
-            showlegend=False
+        fig.add_trace(
+            go.Scattergeo(
+                lon=results_longitudes,
+                lat=results_latitudes,
+                mode="markers",
+                marker={
+                    # "size": 10,
+                    "color": "red",
+                    "symbol": "x"
+                },
+                name="destinations",
+                showlegend=False
+            )
         )
-    )
 
-    fig.add_trace(
-        go.Scattergeo(
-            lon=routes_longitudes,
-            lat=routes_latitudes,
-            mode="lines",
-            marker={"color": "gray"},
-            name="routes",
-            showlegend=False
+        fig.add_trace(
+            go.Scattergeo(
+                lon=routes_longitudes,
+                lat=routes_latitudes,
+                mode="lines",
+                opacity=0.7,
+                marker={"color": country_colors[destination_country]},
+                name=f"routes_{destination_country}",
+                showlegend=True
+            )
         )
-    )
 
     # Layout
     update_geo_layout(fig)
@@ -289,14 +303,22 @@ def visualize_complete_route(route_locations: list):
 # ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR',
 # 'HR', 'HU', 'IE', 'IS', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'NO', 'PL',
 # 'PT', 'RO', 'SE', 'SI', 'SK', 'LI']
+country_colors = {
+    "US": "gray",
+    "GB": "green",
+    "RU": "red",
+    "RS": "blue",
+    "UA": "yellow",
+    "CH": "purple"
+}
 ANALYSIS_MODE = RESULTS_MODES[1]
 visualize_hunter_routes_results(
     f"{REPLICATION_PACKAGE_DIR}/analysis_{ANALYSIS_MODE}/"
     f"routes_results_non_suspicious_{ANALYSIS_MODE}.csv",
     only_out_of_EEE=True,
     origin_country_filter=[],
-    destination_country_filter=[],
-    capital_aggregation=True
+    destination_country_filter=["RS", "RU", "UA"],
+    capital_aggregation=False
 )
 
 
