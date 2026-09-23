@@ -2,6 +2,7 @@ jupyter
 pandas
 shapely
 plotly
+kaleido
 ipinfo
 numpy
 requests

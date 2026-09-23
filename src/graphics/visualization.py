@@ -92,13 +92,14 @@ def add_result_trace(fig: go.Figure, filename: str):
     pass
 
 
-def update_geo_layout(fig: go.Figure):
+def update_geo_layout(fig: go.Figure, fitbounds: bool = False):
     fig.update_geos(
         visible=False,
         resolution=50,
         showcountries=True,
         countrycolor="RebeccaPurple",
-        projection_type="natural earth"
+        projection_type="natural earth",
+        fitbounds="locations" if fitbounds else False
     )
 
 
@@ -303,23 +304,23 @@ def visualize_complete_route(route_locations: list):
 # ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR',
 # 'HR', 'HU', 'IE', 'IS', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'NO', 'PL',
 # 'PT', 'RO', 'SE', 'SI', 'SK', 'LI']
-country_colors = {
-    "US": "gray",
-    "GB": "green",
-    "RU": "red",
-    "RS": "blue",
-    "UA": "yellow",
-    "CH": "purple"
-}
-ANALYSIS_MODE = RESULTS_MODES[1]
-visualize_hunter_routes_results(
-    f"{REPLICATION_PACKAGE_DIR}/analysis_{ANALYSIS_MODE}/"
-    f"routes_results_non_suspicious_{ANALYSIS_MODE}.csv",
-    only_out_of_EEE=True,
-    origin_country_filter=[],
-    destination_country_filter=["RS", "RU", "UA"],
-    capital_aggregation=False
-)
+# country_colors = {
+#     "US": "gray",
+#     "GB": "green",
+#     "RU": "red",
+#     "RS": "blue",
+#     "UA": "yellow",
+#     "CH": "purple"
+# }
+# ANALYSIS_MODE = RESULTS_MODES[1]
+# visualize_hunter_routes_results(
+#     f"{REPLICATION_PACKAGE_DIR}/analysis_{ANALYSIS_MODE}/"
+#     f"routes_results_non_suspicious_{ANALYSIS_MODE}.csv",
+#     only_out_of_EEE=True,
+#     origin_country_filter=[],
+#     destination_country_filter=["RS", "RU", "UA"],
+#     capital_aggregation=False
+# )
 
 
 # Show suspicious routes
@@ -344,3 +345,12 @@ visualize_hunter_routes_results(
 #    print(locations)
 #
 #    visualize_complete_route(locations)
+
+
+# Create an image with the grid over the world map in order to vizualize the mesh
+def visualize_probes_selection_grid(output_filepath: str = "mesh_grid.svg"):
+    fig = go.Figure()
+    add_mesh_geo_trace(fig)
+    update_geo_layout(fig, fitbounds=True)
+    fig.update_layout(margin={"l": 0, "r": 0, "t": 0, "b": 0})
+    fig.write_image(output_filepath)
