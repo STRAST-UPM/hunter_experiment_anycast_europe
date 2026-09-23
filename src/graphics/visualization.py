@@ -2,10 +2,13 @@
 # -*- coding: utf-8 -*-
 
 # external imports
+import io
 import pandas as pd
 import plotly.graph_objects as go
 import requests
 import json
+import numpy as np
+from PIL import Image
 from shapely import (
     Point,
     from_geojson
@@ -347,10 +350,29 @@ def visualize_complete_route(route_locations: list):
 #    visualize_complete_route(locations)
 
 
+# Renders a probe PNG to measure the true content aspect ratio, since it
+# depends on the map projection's distortion and can't be computed analytically
+def _measure_content_aspect_ratio(fig: go.Figure, probe_size: int = 800) -> float:
+    png_bytes = fig.to_image(format="png", width=probe_size, height=probe_size)
+    pixels = np.array(Image.open(io.BytesIO(png_bytes)).convert("RGB"))
+    background = pixels[0, 0]
+    content_mask = np.any(pixels != background, axis=-1)
+    content_rows = np.nonzero(np.any(content_mask, axis=1))[0]
+    content_cols = np.nonzero(np.any(content_mask, axis=0))[0]
+    content_width = content_cols[-1] - content_cols[0] + 1
+    content_height = content_rows[-1] - content_rows[0] + 1
+    return content_width / content_height
+
+
 # Create an image with the grid over the world map in order to vizualize the mesh
 def visualize_probes_selection_grid(output_filepath: str = "mesh_grid.svg"):
     fig = go.Figure()
     add_mesh_geo_trace(fig)
     update_geo_layout(fig, fitbounds=True)
     fig.update_layout(margin={"l": 0, "r": 0, "t": 0, "b": 0})
-    fig.write_image(output_filepath)
+
+    aspect_ratio = _measure_content_aspect_ratio(fig)
+    image_width = 1000
+    image_height = round(image_width / aspect_ratio)
+
+    fig.write_image(output_filepath, width=image_width, height=image_height)
