@@ -365,11 +365,34 @@ def _measure_content_aspect_ratio(fig: go.Figure, probe_size: int = 800) -> floa
 
 
 # Create an image with the grid over the world map in order to vizualize the mesh
-def visualize_probes_selection_grid(output_filepath: str = "mesh_grid.svg"):
+def visualize_probes_selection_grid(
+        output_filepath: str = "tpls_experiment_mesh_grid.svg",
+        use_tile_basemap: bool = True):
     fig = go.Figure()
-    add_mesh_geo_trace(fig)
-    update_geo_layout(fig, fitbounds=True)
-    fig.update_layout(margin={"l": 0, "r": 0, "t": 0, "b": 0})
+    mesh = MeshModel(mesh_filepath=MESH_FILEPATH)
+
+    if use_tile_basemap:
+        for polygon in list(mesh.mesh.geoms):
+            polygon_longitudes, polygon_latitudes = polygon.exterior.coords.xy
+            fig.add_trace(
+                go.Scattermap(
+                    lon=polygon_longitudes.tolist(),
+                    lat=polygon_latitudes.tolist(),
+                    mode="lines",
+                    line={"color": "green"},
+                    name="mesh",
+                    showlegend=False
+                )
+            )
+        fig.update_layout(
+            map_style="carto-positron",
+            margin={"l": 0, "r": 0, "t": 0, "b": 0}
+        )
+        fig.update_maps(fitbounds="locations")
+    else:
+        add_mesh_geo_trace(fig)
+        update_geo_layout(fig, fitbounds=True)
+        fig.update_layout(margin={"l": 0, "r": 0, "t": 0, "b": 0})
 
     aspect_ratio = _measure_content_aspect_ratio(fig)
     image_width = 1000

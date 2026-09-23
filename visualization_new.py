@@ -7,4 +7,7 @@ from src.graphics.visualization import (
 
 
 if __name__ == "__main__":
-    visualize_probes_selection_grid()
+    visualize_probes_selection_grid(
+        output_filepath="tpls_experiment_mesh_grid.svg",
+        use_tile_basemap=False
+    )
