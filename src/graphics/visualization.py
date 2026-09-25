@@ -399,3 +399,57 @@ def visualize_probes_selection_grid(
     image_height = round(image_width / aspect_ratio)
 
     fig.write_image(output_filepath, width=image_width, height=image_height)
+
+
+# Histogram of how many distinct destination countries were observed per IP
+# Per-IP list and count of distinct destination countries observed
+def get_ip_destination_countries_df(
+        analysis_mode: str = RESULTS_MODES[1]) -> pd.DataFrame:
+    routes_frequency_filepath = (
+        f"{REPLICATION_PACKAGE_DIR}/analysis_{analysis_mode}/"
+        f"routes_frequency_non_suspicious_{analysis_mode}.csv"
+    )
+    routes_frequency_df = pd.read_csv(routes_frequency_filepath, sep=",")
+
+    valid_routes_df = routes_frequency_df.loc[
+        routes_frequency_df["result_country"] != "Indeterminate"
+    ]
+
+    ip_destination_countries_df = valid_routes_df.groupby(
+        "target"
+    )["result_country"].agg(
+        lambda countries: sorted(countries.unique().tolist())
+    ).reset_index().rename(columns={"result_country": "destination_countries"})
+
+    ip_destination_countries_df["destination_countries_count"] = (
+        ip_destination_countries_df["destination_countries"].apply(len)
+    )
+
+    return ip_destination_countries_df
+
+
+def visualize_ip_destination_countries_histogram(
+        output_filepath: str = "ip_destination_countries_histogram.svg",
+        analysis_mode: str = RESULTS_MODES[1]):
+    ip_destination_countries_df = get_ip_destination_countries_df(analysis_mode)
+
+    ips_by_destination_countries_count = (
+        ip_destination_countries_df["destination_countries_count"]
+        .value_counts()
+        .sort_index()
+    )
+
+    fig = go.Figure(
+        go.Bar(
+            x=ips_by_destination_countries_count.index.tolist(),
+            y=ips_by_destination_countries_count.values.tolist()
+        )
+    )
+    fig.update_layout(
+        xaxis_title="Number of destination countries observed",
+        yaxis_title="Number of IPs",
+        xaxis={"dtick": 1},
+        bargap=0.1
+    )
+
+    fig.write_image(output_filepath)
