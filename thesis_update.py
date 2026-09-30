@@ -4,7 +4,6 @@
 from src.graphics.visualization import (
     visualize_probes_selection_grid,
     visualize_ip_destination_countries_histogram,
-    get_ip_destination_countries_df
 )
 from src.utils.common_functions import dict_to_json_file
 from src.utils.constants import (
@@ -15,23 +14,6 @@ from src.utils.constants import (
 ANALYSIS_MODE = RESULTS_MODES[1]
 ANALYSIS_FOLDER = f"{REPLICATION_PACKAGE_DIR}/analysis_{ANALYSIS_MODE}"
 IP_DESTINATIONS_COUNT_FILEPATH = f"{ANALYSIS_FOLDER}/ip_destinations_count_{ANALYSIS_MODE}.csv"
-
-
-def generate_ip_destination_countries_report(
-        output_filepath: str = "ip_destination_countries.json"):
-    """Save, per IP, its destination countries count and country codes."""
-    ip_destination_countries_df = get_ip_destination_countries_df()
-
-    report = {
-        row["target"]: {
-            "destination_countries_count": row["destination_countries_count"],
-            "destination_countries": row["destination_countries"]
-        }
-        for _, row in ip_destination_countries_df.iterrows()
-    }
-
-    dict_to_json_file(report, output_filepath, sort_keys=True)
-
 
 ########################################################################################################################
 
@@ -44,8 +26,4 @@ if __name__ == "__main__":
     visualize_ip_destination_countries_histogram(
         output_filepath="ip_destination_countries_histogram.svg",
         ip_destinations_dataframe_path=IP_DESTINATIONS_COUNT_FILEPATH
-    )
-
-    generate_ip_destination_countries_report(
-        output_filepath="ip_destination_countries.json"
     )
