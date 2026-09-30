@@ -7,6 +7,14 @@ from src.graphics.visualization import (
     get_ip_destination_countries_df
 )
 from src.utils.common_functions import dict_to_json_file
+from src.utils.constants import (
+    RESULTS_MODES,
+    REPLICATION_PACKAGE_DIR
+)
+
+ANALYSIS_MODE = RESULTS_MODES[1]
+ANALYSIS_FOLDER = f"{REPLICATION_PACKAGE_DIR}/analysis_{ANALYSIS_MODE}"
+IP_DESTINATIONS_COUNT_FILEPATH = f"{ANALYSIS_FOLDER}/ip_destinations_count_{ANALYSIS_MODE}.csv"
 
 
 def generate_ip_destination_countries_report(
@@ -34,7 +42,8 @@ if __name__ == "__main__":
     )
 
     visualize_ip_destination_countries_histogram(
-        output_filepath="ip_destination_countries_histogram.svg"
+        output_filepath="ip_destination_countries_histogram.svg",
+        ip_destinations_dataframe_path=IP_DESTINATIONS_COUNT_FILEPATH
     )
 
     generate_ip_destination_countries_report(

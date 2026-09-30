@@ -402,39 +402,14 @@ def visualize_probes_selection_grid(
 
 
 # Histogram of how many distinct destination countries were observed per IP
-# Per-IP list and count of distinct destination countries observed
-def get_ip_destination_countries_df(
-        analysis_mode: str = RESULTS_MODES[1]) -> pd.DataFrame:
-    routes_frequency_filepath = (
-        f"{REPLICATION_PACKAGE_DIR}/analysis_{analysis_mode}/"
-        f"routes_frequency_non_suspicious_{analysis_mode}.csv"
-    )
-    routes_frequency_df = pd.read_csv(routes_frequency_filepath, sep=",")
-
-    valid_routes_df = routes_frequency_df.loc[
-        routes_frequency_df["result_country"] != "Indeterminate"
-    ]
-
-    ip_destination_countries_df = valid_routes_df.groupby(
-        "target"
-    )["result_country"].agg(
-        lambda countries: sorted(countries.unique().tolist())
-    ).reset_index().rename(columns={"result_country": "destination_countries"})
-
-    ip_destination_countries_df["destination_countries_count"] = (
-        ip_destination_countries_df["destination_countries"].apply(len)
-    )
-
-    return ip_destination_countries_df
-
-
 def visualize_ip_destination_countries_histogram(
+        ip_destinations_dataframe_path: str,
         output_filepath: str = "ip_destination_countries_histogram.svg",
         analysis_mode: str = RESULTS_MODES[1]):
-    ip_destination_countries_df = get_ip_destination_countries_df(analysis_mode)
-
+    ip_destinations_count_df = pd.read_csv(ip_destinations_dataframe_path, sep=",")
+    
     ips_by_destination_countries_count = (
-        ip_destination_countries_df["destination_countries_count"]
+        ip_destinations_count_df["result_countries_count"]
         .value_counts()
         .sort_index()
     )
