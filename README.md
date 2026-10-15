@@ -31,5 +31,15 @@ Clasificación y estadísticas + comprobación de cabeceras (todos los pares)
 python3 main_providers_classification.py --check-edges --all
 ```
 
+Solo la estimación final del escenario por IP, reutilizando una comprobación de cabeceras ya hecha
+
+```bash
+python3 main_providers_classification.py --summarize
+```
+
+La estimación combina la clasificación por rangos con las cabeceras y los tiempos de TCP y TLS
+(`src/providers/summarize_scenarios.py`). Los umbrales de la diferencia TLS-TCP se calibran con los
+propios datos: percentil 99 de los pares con cabecera de capa 7 y percentil 10 de AWS Global Accelerator.
+
 Los CSVs generados se guardan en `replication_package_europe_anycast_experiment/providers_classification/`
 y las fuentes de datos (historial de rangos de IP y tabla de AS) en su subcarpeta `sources/`.
