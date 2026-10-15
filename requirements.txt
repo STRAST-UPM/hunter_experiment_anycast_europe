@@ -8,3 +8,4 @@ ipinfo
 numpy
 requests
 python-dotenv
+pyasn

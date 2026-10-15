@@ -5,7 +5,7 @@ escenario (a, b o c) estaba cada comunicación.
 
 Fuentes históricas (repositorios de Git que guardan copias periódicas de los
 rangos publicados por cada proveedor; se clonan automáticamente en
-HISTORY_REPOS_DIR):
+IP_RANGES_HISTORY_DIR):
 
   * AWS         joetek/aws-ip-ranges-json      ip-ranges.json por servicio
                 (CLOUDFRONT = L7, GLOBALACCELERATOR = L4)
@@ -21,33 +21,35 @@ Fuente opcional para el resto de proveedores (operador por número de AS):
   * pyasn con una tabla de RouteViews de la fecha de las medidas. Se activa si
     existe el fichero ASN_DB_FILEPATH. Para generarlo:
         pip install pyasn
-        pyasn_util_download.py --date 20231214
+        echo 20231214 > fechas.txt
+        pyasn_util_download.py --dates-from-file fechas.txt
         pyasn_util_convert.py --single rib.20231214.*.bz2 ipasn_20231214.dat
     y copiar ipasn_20231214.dat a ASN_DB_FILEPATH.
 
-Entrada: DESTINATIONS_FILEPATH (CSV ip,date,dns con las IPs anycast y el nombre
-         DNS de la petición; se genera a partir de
+Entrada: ANYCAST_DESTINATIONS_FILEPATH (CSV ip,date,dns con las IPs anycast y
+         el nombre DNS de la petición; se genera a partir de
          TRAFFIC_LOGS_IP_CLASSIFIED_FILEPATH si no existe).
-Salida:  OUTPUT_FILEPATH con columnas
+Salida:  ANYCAST_PROVIDER_CLASSIFICATION_FILEPATH con columnas
          ip,date,dns,provider,product,layer,scenario,source,snapshot_date
 
-Uso:
-    python3 classify_providers.py
+Todas las rutas están en src/utils/constants.py. Punto de entrada:
+main_providers_classification.py en la raíz del repositorio.
 """
 import csv, ipaddress, json, os, subprocess, sys
 from functools import lru_cache
 
-from src.utils.constants import REPLICATION_PACKAGE_DIR, TRAFFIC_LOGS_IP_CLASSIFIED_FILEPATH
+from src.utils.constants import (
+    TRAFFIC_LOGS_IP_CLASSIFIED_FILEPATH,
+    ANYCAST_DESTINATIONS_FILEPATH,
+    ANYCAST_PROVIDER_CLASSIFICATION_FILEPATH,
+    ASN_DB_FILEPATH,
+    IP_RANGES_HISTORY_DIR,
+)
 
-DESTINATIONS_FILEPATH = f"{REPLICATION_PACKAGE_DIR}/anycast_destinations.csv"
-OUTPUT_FILEPATH = f"{REPLICATION_PACKAGE_DIR}/anycast_provider_classification.csv"
-ASN_DB_FILEPATH = f"{REPLICATION_PACKAGE_DIR}/ipasn.dat"
-
-HISTORY_REPOS_DIR = f"{REPLICATION_PACKAGE_DIR}/ip_ranges_history"
 HISTORY_REPOS = {
-    "aws": ("https://github.com/joetek/aws-ip-ranges-json", f"{HISTORY_REPOS_DIR}/aws-ip-history"),
-    "google": ("https://github.com/jay0lee/google-ip-range-tracker", f"{HISTORY_REPOS_DIR}/google-ip-history"),
-    "lordalfred": ("https://github.com/lord-alfred/ipranges", f"{HISTORY_REPOS_DIR}/multi-ip-history"),
+    "aws": ("https://github.com/joetek/aws-ip-ranges-json", f"{IP_RANGES_HISTORY_DIR}/aws-ip-history"),
+    "google": ("https://github.com/jay0lee/google-ip-range-tracker", f"{IP_RANGES_HISTORY_DIR}/google-ip-history"),
+    "lordalfred": ("https://github.com/lord-alfred/ipranges", f"{IP_RANGES_HISTORY_DIR}/multi-ip-history"),
 }
 
 # Operadores conocidos por número de AS (solo para la fuente opcional pyasn)
@@ -223,7 +225,7 @@ def classify(ip, date):
             return provider, product, layer, SCENARIO[layer], source, snapshot_date
     return "desconocido", "-", UNK, SCENARIO[UNK], "-", "-"
 
-def destinations_csv(traffic_logs=TRAFFIC_LOGS_IP_CLASSIFIED_FILEPATH, outfile=DESTINATIONS_FILEPATH):
+def destinations_csv(traffic_logs=TRAFFIC_LOGS_IP_CLASSIFIED_FILEPATH, outfile=ANYCAST_DESTINATIONS_FILEPATH):
     """Genera un CSV ip,date,dns (sin duplicados) con la IP de destino, la fecha
     y el nombre DNS (columna host) de cada petición a una IP marcada como
     anycast. Una IP puede aparecer varias veces el mismo día con distintos
@@ -231,6 +233,7 @@ def destinations_csv(traffic_logs=TRAFFIC_LOGS_IP_CLASSIFIED_FILEPATH, outfile=D
     if os.path.exists(outfile):
         return outfile
     csv.field_size_limit(sys.maxsize)   # la columna stackTrace es muy larga
+    os.makedirs(os.path.dirname(outfile), exist_ok=True)
     rows = set()
     with open(traffic_logs, newline="") as f:
         for row in csv.DictReader(f):
@@ -243,7 +246,8 @@ def destinations_csv(traffic_logs=TRAFFIC_LOGS_IP_CLASSIFIED_FILEPATH, outfile=D
         w.writerows(sorted(rows, key=lambda r: (r[1], r[0], r[2])))
     return outfile
 
-def main(infile, outfile=OUTPUT_FILEPATH):
+def classify_destinations(infile=ANYCAST_DESTINATIONS_FILEPATH, outfile=ANYCAST_PROVIDER_CLASSIFICATION_FILEPATH):
+    os.makedirs(os.path.dirname(outfile), exist_ok=True)
     with open(infile) as f, open(outfile, "w", newline="") as out:
         w = csv.writer(out)
         w.writerow(["ip", "date", "dns", "provider", "product", "layer", "scenario", "source", "snapshot_date"])
@@ -251,7 +255,7 @@ def main(infile, outfile=OUTPUT_FILEPATH):
             ip, date = row["ip"].strip(), row["date"].strip()
             w.writerow([ip, date, row["dns"].strip(), *classify(ip, date)])
 
-def stats(infile=OUTPUT_FILEPATH):
+def stats(infile=ANYCAST_PROVIDER_CLASSIFICATION_FILEPATH):
     """IPs distintas por escenario y por proveedor/producto."""
     by_scenario, by_product = {}, {}
     with open(infile) as f:
@@ -265,7 +269,3 @@ def stats(infile=OUTPUT_FILEPATH):
     print("\nPor proveedor / producto:")
     for k, v in sorted(by_product.items(), key=lambda x: -len(x[1])):
         print(f"  {k:<55} {len(v):>6} ({len(v) / total:.1%})")
-
-if __name__ == "__main__":
-    main(destinations_csv())
-    stats()
