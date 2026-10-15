@@ -327,27 +327,27 @@ def visualize_complete_route(route_locations: list):
 
 
 # Show suspicious routes
-#suspicious_routes_df = pd.read_csv(
-#    f"{PARTIAL_RESULTS_DIR}/voting/suspicious_results_voting.csv")
-#suspicious_routes_df = suspicious_routes_df.loc[
-#    (suspicious_routes_df["origin_country"] == "ES")
-#]
-#for index, row in suspicious_routes_df.iterrows():
-#    route = literal_eval(row["route"])
-#    locations = [(row["origin_longitude"], row["origin_latitude"], "origin")]
-#    for hop in route[1:]:
-#        if len(hop) == 0:
-#            continue
-#
-#        longitude, latitude, is_anycast = get_ip_location_via_cache(hop[0])
-#        if is_anycast or (latitude == 0 and longitude == 0):
-#            pass
-#        else:
-#            locations.append(
-#                (longitude, latitude, hop[0]))
-#    print(locations)
-#
-#    visualize_complete_route(locations)
+# suspicious_routes_df = pd.read_csv(
+#     f"{PARTIAL_RESULTS_DIR}/voting/suspicious_results_voting.csv")
+# suspicious_routes_df = suspicious_routes_df.loc[
+#     (suspicious_routes_df["origin_country"] == "ES")
+# ]
+# for index, row in suspicious_routes_df.iterrows():
+#     route = literal_eval(row["route"])
+#     locations = [(row["origin_longitude"], row["origin_latitude"], "origin")]
+#     for hop in route[1:]:
+#         if len(hop) == 0:
+#             continue
+# 
+#         longitude, latitude, is_anycast = get_ip_location_via_cache(hop[0])
+#         if is_anycast or (latitude == 0 and longitude == 0):
+#             pass
+#         else:
+#             locations.append(
+#                 (longitude, latitude, hop[0]))
+#     print(locations)
+# 
+#     visualize_complete_route(locations)
 
 
 # Renders a probe PNG to measure the true content aspect ratio, since it

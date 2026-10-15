@@ -33,6 +33,8 @@ EEE_MESH_3_FILEPATH = f"{__PROBES_DISTRIBUTIONS_DIR}/EEE_mesh_3.json"
 REPLICATION_PACKAGE_DIR = (
     f"{__BASE_DIR}/replication_package_europe_anycast_experiment")
 TRAFFIC_LOGS_FILEPATH = f"{REPLICATION_PACKAGE_DIR}/Traffic_logs_10K.csv"
+TRAFFIC_LOGS_DESTINATIONS_FILEPATH = \
+    f"{REPLICATION_PACKAGE_DIR}/Traffic_logs_10K_anycast_destinations.csv"
 TRAFFIC_LOGS_IP_CLASSIFIED_FILEPATH = \
     f"{REPLICATION_PACKAGE_DIR}/Traffic_logs_10K_ip_classified.csv"
 ANYCAST_IP_CLASSIFICATION_FILEPATH = \
