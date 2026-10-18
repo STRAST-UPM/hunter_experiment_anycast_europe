@@ -57,3 +57,23 @@ defecto si hay menos de 20 casos de algún tipo).
 
 Los CSVs generados se guardan en `replication_package_europe_anycast_experiment/providers_classification/`
 y las fuentes de datos (historial de rangos de IP y tabla de AS) en su subcarpeta `sources/`.
+
+Países de destino inferidos por Hunter para cada IP clasificada (requiere el fichero
+`analysis_voting/routes_frequency_non_suspicious_voting.csv` generado por el cuaderno de análisis)
+
+```bash
+python3 main_providers_classification.py --hunter-destinations
+```
+
+Genera en `providers_classification/` los ficheros `anycast_hunter_pair_destinations.csv` (por par
+IP y país de origen) y `anycast_hunter_ip_destinations.csv` (por IP).
+
+Cruce de escenarios, destinos de Hunter y comunicaciones con datos personales (requiere la
+estimación de escenarios; `--summarize` la regenera con la comprobación de cabeceras existente)
+
+```bash
+python3 main_providers_classification.py --summarize --cross > replication_package_europe_anycast_experiment/providers_classification/providers_classification.log 2>&1
+```
+
+Genera `anycast_scenarios_hunter_cross.csv` (una fila por IP) y `anycast_scenarios_hunter_summary.csv`
+(una fila por escenario, con IPs y comunicaciones), y muestra el detalle de las IPs en escenario (b).

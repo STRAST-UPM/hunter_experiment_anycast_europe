@@ -68,6 +68,19 @@ ANYCAST_EDGE_HEADERS_CALIBRATION_FILEPATH = \
 PROVIDERS_SOURCES_DIR = f"{PROVIDERS_CLASSIFICATION_DIR}/sources"
 ASN_DB_FILEPATH = f"{PROVIDERS_SOURCES_DIR}/ipasn.dat"
 IP_RANGES_HISTORY_DIR = f"{PROVIDERS_SOURCES_DIR}/ip_ranges_history"
+# Hunter results used by the providers classification (same mode as the analysis notebook)
+HUNTER_ANALYSIS_MODE = "voting"
+ROUTES_FREQUENCY_NON_SUSPICIOUS_FILEPATH = (
+    f"{REPLICATION_PACKAGE_DIR}/analysis_{HUNTER_ANALYSIS_MODE}/"
+    f"routes_frequency_non_suspicious_{HUNTER_ANALYSIS_MODE}.csv")
+ANYCAST_HUNTER_PAIR_DESTINATIONS_FILEPATH = \
+    f"{PROVIDERS_CLASSIFICATION_DIR}/anycast_hunter_pair_destinations.csv"
+ANYCAST_HUNTER_IP_DESTINATIONS_FILEPATH = \
+    f"{PROVIDERS_CLASSIFICATION_DIR}/anycast_hunter_ip_destinations.csv"
+ANYCAST_SCENARIOS_HUNTER_CROSS_FILEPATH = \
+    f"{PROVIDERS_CLASSIFICATION_DIR}/anycast_scenarios_hunter_cross.csv"
+ANYCAST_SCENARIOS_HUNTER_SUMMARY_FILEPATH = \
+    f"{PROVIDERS_CLASSIFICATION_DIR}/anycast_scenarios_hunter_summary.csv"
 
 # RIPE ATLAS API URLS
 __RIPE_ATLAS_API_BASE_URL = "https://atlas.ripe.net/api/v2/"
