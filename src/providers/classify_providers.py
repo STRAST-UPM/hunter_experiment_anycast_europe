@@ -26,9 +26,9 @@ Fuente opcional para el resto de proveedores (operador por número de AS):
         pyasn_util_convert.py --single rib.20231214.*.bz2 ipasn_20231214.dat
     y copiar ipasn_20231214.dat a ASN_DB_FILEPATH.
 
-Entrada: ANYCAST_DESTINATIONS_FILEPATH (CSV ip,date,dns con las IPs anycast y
-         el nombre DNS de la petición; se genera a partir de
-         TRAFFIC_LOGS_IP_CLASSIFIED_FILEPATH si no existe).
+Entrada: ANYCAST_DESTINATIONS_FILEPATH (CSV ip,date,dns con las IPs anycast que
+         reciben datos personales y el nombre DNS de la petición; se genera a
+         partir de ANYCAST_PII_TRAFFIC_LOGS_FILEPATH si no existe).
 Salida:  ANYCAST_PROVIDER_CLASSIFICATION_FILEPATH con columnas
          ip,date,dns,provider,product,layer,scenario,source,snapshot_date
 
@@ -39,7 +39,7 @@ import csv, ipaddress, json, os, subprocess, sys
 from functools import lru_cache
 
 from src.utils.constants import (
-    TRAFFIC_LOGS_IP_CLASSIFIED_FILEPATH,
+    ANYCAST_PII_TRAFFIC_LOGS_FILEPATH,
     ANYCAST_DESTINATIONS_FILEPATH,
     ANYCAST_PROVIDER_CLASSIFICATION_FILEPATH,
     ASN_DB_FILEPATH,
@@ -225,11 +225,12 @@ def classify(ip, date):
             return provider, product, layer, SCENARIO[layer], source, snapshot_date
     return "desconocido", "-", UNK, SCENARIO[UNK], "-", "-"
 
-def destinations_csv(traffic_logs=TRAFFIC_LOGS_IP_CLASSIFIED_FILEPATH, outfile=ANYCAST_DESTINATIONS_FILEPATH):
+def destinations_csv(traffic_logs=ANYCAST_PII_TRAFFIC_LOGS_FILEPATH, outfile=ANYCAST_DESTINATIONS_FILEPATH):
     """Genera un CSV ip,date,dns (sin duplicados) con la IP de destino, la fecha
-    y el nombre DNS (columna host) de cada petición a una IP marcada como
-    anycast. Una IP puede aparecer varias veces el mismo día con distintos
-    nombres. Si el fichero ya existe, se reutiliza."""
+    y el nombre DNS (columna host) de cada petición a una IP anycast que envía
+    datos personales (PII distinto de No-PII). Una IP puede aparecer varias
+    veces el mismo día con distintos nombres. Si el fichero ya existe, se
+    reutiliza."""
     if os.path.exists(outfile):
         return outfile
     csv.field_size_limit(sys.maxsize)   # la columna stackTrace es muy larga
@@ -238,7 +239,7 @@ def destinations_csv(traffic_logs=TRAFFIC_LOGS_IP_CLASSIFIED_FILEPATH, outfile=A
     with open(traffic_logs, newline="") as f:
         for row in csv.DictReader(f):
             ip = row["ip_dest"].strip()
-            if ip and row["ip_anycast"] == "True":
+            if ip and row["ip_anycast"] == "True" and row["PII"].strip() not in ("", "No-PII"):
                 rows.add((ip, row["asctime"][:10], row["host"].strip()))
     with open(outfile, "w", newline="") as f:
         w = csv.writer(f)

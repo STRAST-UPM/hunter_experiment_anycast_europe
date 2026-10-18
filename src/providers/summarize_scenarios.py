@@ -54,16 +54,19 @@ def responded(row):
 
 def calibrate_thresholds(edge_check=ANYCAST_EDGE_HEADERS_CHECK_FILEPATH,
                          classification=ANYCAST_PROVIDER_CLASSIFICATION_FILEPATH):
-    """Umbrales de TLS-TCP a partir de los casos de escenario conocido."""
-    global_accelerator_ips = set()
+    """Umbrales de TLS-TCP a partir de los casos de escenario conocido. Solo se
+    usan las IPs presentes en la clasificación, aunque la comprobación de
+    cabeceras incluya más."""
+    classified_ips, global_accelerator_ips = set(), set()
     with open(classification) as f:
         for row in csv.DictReader(f):
+            classified_ips.add(row["ip"])
             if row["provider"] == "AWS" and row["product"] == "Global Accelerator":
                 global_accelerator_ips.add(row["ip"])
     l7, l4 = [], []
     with open(edge_check) as f:
         for row in csv.DictReader(f):
-            if not responded(row):
+            if row["ip"] not in classified_ips or not responded(row):
                 continue
             delta = float(row["tls_minus_tcp_ms"])
             if row["edge_product"]:

@@ -1,9 +1,10 @@
 """
-Punto de entrada del estudio de proveedores de las IPs anycast de destino.
+Punto de entrada del estudio de proveedores de las IPs anycast de destino que
+reciben datos personales (PII).
 
 Pasos:
-  1. Extrae las IPs anycast con su fecha y nombre DNS de los logs de tráfico
-     (se reutiliza el CSV si ya existe).
+  1. Extrae las IPs anycast con PII, su fecha y nombre DNS de los logs de
+     tráfico (Anycast_PII_traffic_logs.csv; se reutiliza el CSV si ya existe).
   2. Clasifica cada IP por proveedor, producto y escenario (a, b o c) usando el
      historial de rangos publicados y muestra las estadísticas.
   3. Opcional (--check-edges): comprueba hoy las cabeceras y tiempos del

@@ -31,10 +31,18 @@ Clasificación y estadísticas + comprobación de cabeceras (todos los pares)
 python3 main_providers_classification.py --check-edges --all
 ```
 
+```bash
+python3 main_providers_classification.py --check-edges --all > replication_package_europe_anycast_experiment/providers_classification/providers_classification.log 2>&1
+```
+
 Solo la estimación final del escenario por IP, reutilizando una comprobación de cabeceras ya hecha
 
 ```bash
 python3 main_providers_classification.py --summarize
+```
+
+```bash
+python3 main_providers_classification.py --summarize > replication_package_europe_anycast_experiment/providers_classification/providers_classification.log 2>&1
 ```
 
 La estimación combina la clasificación por rangos con las cabeceras y los tiempos de TCP y TLS
