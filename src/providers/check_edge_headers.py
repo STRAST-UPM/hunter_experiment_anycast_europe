@@ -91,8 +91,11 @@ def edge_product(headers):
 
 
 def probe(ip, host):
+    """Petición HTTPS al host. Con ip, fuerza la conexión a esa dirección
+    (curl --resolve); con ip=None, usa la resolución DNS actual."""
+    resolve = ["--resolve", f"{host}:443:{ip}"] if ip else []
     cmd = ["curl", "-s", "-o", "/dev/null", "-D", "-", "-I",
-           "--max-time", str(TIMEOUT_S), "--resolve", f"{host}:443:{ip}",
+           "--max-time", str(TIMEOUT_S), *resolve,
            "-w", CURL_FORMAT, f"https://{host}/"]
     try:
         out = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT_S + 5).stdout
@@ -113,9 +116,15 @@ def check(pair):
     ip, host, scenario, provider = pair
     same_ip, current = resolves_to(host, ip)
     (code, t_tcp, t_tls, tls_minus_tcp, t_fb), headers = probe(ip, host)
+    target = "IP histórica"
+    if code == "sin respuesta" and same_ip == "no":
+        # La IP histórica ya no atiende al host: se prueba con su resolución
+        # actual. Es una evidencia más débil (puede ser otro despliegue).
+        (code, t_tcp, t_tls, tls_minus_tcp, t_fb), headers = probe(None, host)
+        target = "IP actual"
     product = edge_product(headers)
     inferred = "a" if product else ("?" if code != "sin respuesta" else "-")
-    return [ip, host, provider, scenario, same_ip, current, code, product, inferred,
+    return [ip, host, provider, scenario, same_ip, current, target, code, product, inferred,
             t_tcp, t_tls, tls_minus_tcp, t_fb, *[headers.get(h, "") for h in HEADERS_TO_KEEP]]
 
 
@@ -135,7 +144,7 @@ def check_edge_headers(check_all=False, infile=ANYCAST_PROVIDER_CLASSIFICATION_F
     with open(outfile, "w", newline="") as out:
         w = csv.writer(out)
         w.writerow(["ip", "dns", "provider", "scenario_by_ranges", "resolves_today_to_same_ip",
-                    "current_ips", "http_code", "edge_product", "scenario_by_headers",
+                    "current_ips", "probe_target", "http_code", "edge_product", "scenario_by_headers",
                     "tcp_ms", "tls_ms", "tls_minus_tcp_ms", "first_byte_ms",
                     *[f"h_{h}" for h in HEADERS_TO_KEEP]])
         w.writerows(rows)

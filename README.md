@@ -49,5 +49,11 @@ La estimación combina la clasificación por rangos con las cabeceras y los tiem
 (`src/providers/summarize_scenarios.py`). Los umbrales de la diferencia TLS-TCP se calibran con los
 propios datos: percentil 99 de los pares con cabecera de capa 7 y percentil 10 de AWS Global Accelerator.
 
+Calibración de los umbrales TLS-TCP con una comprobación más amplia (recomendado): guardar como
+`providers_classification/anycast_edge_headers_calibration.csv` una comprobación de cabeceras hecha
+con `--check-edges --all` sobre todas las IPs anycast. Si existe, `--summarize` calcula los umbrales
+con ella; si no, con la comprobación actual restringida a las IPs clasificadas (o con los valores por
+defecto si hay menos de 20 casos de algún tipo).
+
 Los CSVs generados se guardan en `replication_package_europe_anycast_experiment/providers_classification/`
 y las fuentes de datos (historial de rangos de IP y tabla de AS) en su subcarpeta `sources/`.
