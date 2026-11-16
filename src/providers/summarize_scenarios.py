@@ -44,6 +44,7 @@ from src.utils.constants import (
     ANYCAST_EDGE_HEADERS_CHECK_FILEPATH,
     ANYCAST_SCENARIOS_FILEPATH,
     ANYCAST_EDGE_HEADERS_CALIBRATION_FILEPATH,
+    TLS_TCP_PLOT_DATA_DIR,
 )
 
 LOW_PERCENTILE, HIGH_PERCENTILE = 0.99, 0.10
@@ -66,11 +67,10 @@ def responded(row):
     return row["http_code"] != "sin respuesta" and row["tls_minus_tcp_ms"] != ""
 
 
-def calibrate_thresholds(edge_check=ANYCAST_EDGE_HEADERS_CHECK_FILEPATH, only_ips=None):
-    """Umbrales de TLS-TCP a partir de los casos de escenario conocido de la
-    propia comprobación: pares con cabecera de capa 7 y pares de AWS clasificados
-    como escenario (b) por rangos (Global Accelerator). Con only_ips, solo se
-    usan esas IPs (por ejemplo, las de la clasificación actual)."""
+def calibration_samples(edge_check=ANYCAST_EDGE_HEADERS_CHECK_FILEPATH, only_ips=None):
+    """Diferencias TLS-TCP de los dos grupos de escenario conocido: pares con
+    cabecera de capa 7 (escenario a) y pares de AWS clasificados como escenario
+    (b) por rangos (Global Accelerator). Con only_ips, solo esas IPs."""
     l7, l4 = [], []
     with open(edge_check) as f:
         for row in csv.DictReader(f):
@@ -81,6 +81,12 @@ def calibrate_thresholds(edge_check=ANYCAST_EDGE_HEADERS_CHECK_FILEPATH, only_ip
                 l7.append(delta)
             elif row["provider"] == "AWS" and row["scenario_by_ranges"] == "b":
                 l4.append(delta)
+    return sorted(l7), sorted(l4)
+
+
+def calibrate_thresholds(edge_check=ANYCAST_EDGE_HEADERS_CHECK_FILEPATH, only_ips=None):
+    """Umbrales de TLS-TCP a partir de los casos de escenario conocido."""
+    l7, l4 = calibration_samples(edge_check, only_ips)
     if len(l7) < MIN_CALIBRATION_SAMPLES or len(l4) < MIN_CALIBRATION_SAMPLES:
         print(f"Aviso: muestras insuficientes para calibrar (capa 7 n={len(l7)}, "
               f"Global Accelerator n={len(l4)}; mínimo {MIN_CALIBRATION_SAMPLES}); "
@@ -95,6 +101,27 @@ def calibrate_thresholds(edge_check=ANYCAST_EDGE_HEADERS_CHECK_FILEPATH, only_ip
         print("Aviso: los umbrales se solapan; se usan los valores por defecto.")
         return DEFAULT_LOW_MS, DEFAULT_HIGH_MS
     return low, high
+
+
+def export_calibration_plot_data(edge_check, only_ips=None, low_ms=None, high_ms=None,
+                                 outdir=TLS_TCP_PLOT_DATA_DIR):
+    """Exporta los datos de la figura de calibración de la tesis (pgfplots):
+    la distribución acumulada de TLS-TCP de cada grupo y los umbrales."""
+    l7, l4 = calibration_samples(edge_check, only_ips)
+    os.makedirs(outdir, exist_ok=True)
+    for name, values in (("layer7", l7), ("layer4", l4)):
+        with open(f"{outdir}/tls_tcp_ecdf_{name}.csv", "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(["ms", "fraction"])
+            w.writerows([f"{v:.3f}", f"{(i + 1) / len(values):.5f}"] for i, v in enumerate(values))
+    median = lambda v: v[len(v) // 2] if len(v) % 2 else (v[len(v) // 2 - 1] + v[len(v) // 2]) / 2
+    with open(f"{outdir}/tls_tcp_thresholds.csv", "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["low_ms", "high_ms", "low_percentile", "high_percentile",
+                    "n_layer7", "n_layer4", "median_layer7", "median_layer4"])
+        w.writerow([f"{low_ms:.1f}", f"{high_ms:.1f}", round(LOW_PERCENTILE * 100), round(HIGH_PERCENTILE * 100),
+                    len(l7), len(l4), f"{median(l7):.1f}", f"{median(l4):.1f}"])
+    print(f"Datos de la figura de calibración en {outdir}")
 
 
 def pair_label(row, low_ms, high_ms):
@@ -119,10 +146,12 @@ def summarize_scenarios(classification=ANYCAST_PROVIDER_CLASSIFICATION_FILEPATH,
     if os.path.exists(calibration_check):
         print(f"Calibración con {os.path.basename(calibration_check)}")
         low_ms, high_ms = calibrate_thresholds(calibration_check)
+        export_calibration_plot_data(calibration_check, low_ms=low_ms, high_ms=high_ms)
     else:
         with open(classification) as f:
             classified_ips = {row["ip"] for row in csv.DictReader(f)}
         low_ms, high_ms = calibrate_thresholds(edge_check, only_ips=classified_ips)
+        export_calibration_plot_data(edge_check, only_ips=classified_ips, low_ms=low_ms, high_ms=high_ms)
 
     by_range = {}
     with open(classification) as f:

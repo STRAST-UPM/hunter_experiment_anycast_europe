@@ -65,6 +65,8 @@ ANYCAST_SCENARIOS_FILEPATH = \
     f"{PROVIDERS_CLASSIFICATION_DIR}/anycast_scenarios.csv"
 ANYCAST_EDGE_HEADERS_CALIBRATION_FILEPATH = \
     f"{PROVIDERS_CLASSIFICATION_DIR}/anycast_edge_headers_calibration.csv"
+# Data for the TLS-TCP calibration figure of the thesis (pgfplots)
+TLS_TCP_PLOT_DATA_DIR = f"{PROVIDERS_CLASSIFICATION_DIR}/tls_tcp_plot_data"
 PROVIDERS_SOURCES_DIR = f"{PROVIDERS_CLASSIFICATION_DIR}/sources"
 ASN_DB_FILEPATH = f"{PROVIDERS_SOURCES_DIR}/ipasn.dat"
 IP_RANGES_HISTORY_DIR = f"{PROVIDERS_SOURCES_DIR}/ip_ranges_history"
