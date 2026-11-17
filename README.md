@@ -77,3 +77,13 @@ python3 main_providers_classification.py --summarize --cross > replication_packa
 
 Genera `anycast_scenarios_hunter_cross.csv` (una fila por IP) y `anycast_scenarios_hunter_summary.csv`
 (una fila por escenario, con IPs y comunicaciones), y muestra el detalle de las IPs en escenario (b).
+
+Figura de calibración de los umbrales TLS-TCP para la tesis (SVG, con el texto como texto para
+`\includesvg`). Usa la misma fuente de calibración y los mismos umbrales que `--summarize`
+
+```bash
+python3 main_providers_classification.py --plot-calibration
+```
+
+Genera `providers_classification/figures/tls_tcp_calibration.svg` y muestra por pantalla las cifras
+que cita el texto de la tesis (tamaños de los grupos, medianas, umbrales y distancias equivalentes).

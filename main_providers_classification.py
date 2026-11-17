@@ -26,6 +26,7 @@ Uso:
     python3 main_providers_classification.py --summarize            # solo resumen, con la comprobación ya hecha
     python3 main_providers_classification.py --hunter-destinations  # países inferidos por Hunter por IP
     python3 main_providers_classification.py --summarize --cross    # cruce escenarios / Hunter / comunicaciones
+    python3 main_providers_classification.py --plot-calibration   # figura SVG de calibración TLS-TCP
 """
 # external imports
 import argparse
@@ -39,6 +40,7 @@ from src.providers.check_edge_headers import check_edge_headers
 from src.providers.summarize_scenarios import summarize_scenarios, scenarios_stats
 from src.providers.hunter_destinations import export_hunter_destinations, hunter_destinations_stats
 from src.providers.cross_scenarios_hunter import cross_scenarios_hunter, cross_stats
+from src.providers.plot_tls_tcp_calibration import plot_tls_tcp_calibration
 
 ########################################################################################################################
 
@@ -55,6 +57,8 @@ if __name__ == "__main__":
     parser.add_argument("--cross", action="store_true",
                         help="cruzar escenarios, destinos de Hunter y comunicaciones con datos personales "
                              "(implica --hunter-destinations)")
+    parser.add_argument("--plot-calibration", action="store_true",
+                        help="generar la figura SVG de calibración de TLS-TCP para la tesis")
     args = parser.parse_args()
 
     classify_destinations(destinations_csv())
@@ -74,3 +78,6 @@ if __name__ == "__main__":
     if args.cross:
         cross_scenarios_hunter()
         cross_stats()
+
+    if args.plot_calibration:
+        plot_tls_tcp_calibration()

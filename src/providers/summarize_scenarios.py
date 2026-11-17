@@ -44,7 +44,6 @@ from src.utils.constants import (
     ANYCAST_EDGE_HEADERS_CHECK_FILEPATH,
     ANYCAST_SCENARIOS_FILEPATH,
     ANYCAST_EDGE_HEADERS_CALIBRATION_FILEPATH,
-    TLS_TCP_PLOT_DATA_DIR,
 )
 
 LOW_PERCENTILE, HIGH_PERCENTILE = 0.99, 0.10
@@ -103,27 +102,6 @@ def calibrate_thresholds(edge_check=ANYCAST_EDGE_HEADERS_CHECK_FILEPATH, only_ip
     return low, high
 
 
-def export_calibration_plot_data(edge_check, only_ips=None, low_ms=None, high_ms=None,
-                                 outdir=TLS_TCP_PLOT_DATA_DIR):
-    """Exporta los datos de la figura de calibración de la tesis (pgfplots):
-    la distribución acumulada de TLS-TCP de cada grupo y los umbrales."""
-    l7, l4 = calibration_samples(edge_check, only_ips)
-    os.makedirs(outdir, exist_ok=True)
-    for name, values in (("layer7", l7), ("layer4", l4)):
-        with open(f"{outdir}/tls_tcp_ecdf_{name}.csv", "w", newline="") as f:
-            w = csv.writer(f)
-            w.writerow(["ms", "fraction"])
-            w.writerows([f"{v:.3f}", f"{(i + 1) / len(values):.5f}"] for i, v in enumerate(values))
-    median = lambda v: v[len(v) // 2] if len(v) % 2 else (v[len(v) // 2 - 1] + v[len(v) // 2]) / 2
-    with open(f"{outdir}/tls_tcp_thresholds.csv", "w", newline="") as f:
-        w = csv.writer(f)
-        w.writerow(["low_ms", "high_ms", "low_percentile", "high_percentile",
-                    "n_layer7", "n_layer4", "median_layer7", "median_layer4"])
-        w.writerow([f"{low_ms:.1f}", f"{high_ms:.1f}", round(LOW_PERCENTILE * 100), round(HIGH_PERCENTILE * 100),
-                    len(l7), len(l4), f"{median(l7):.1f}", f"{median(l4):.1f}"])
-    print(f"Datos de la figura de calibración en {outdir}")
-
-
 def pair_label(row, low_ms, high_ms):
     if not responded(row):
         return None
@@ -146,12 +124,10 @@ def summarize_scenarios(classification=ANYCAST_PROVIDER_CLASSIFICATION_FILEPATH,
     if os.path.exists(calibration_check):
         print(f"Calibración con {os.path.basename(calibration_check)}")
         low_ms, high_ms = calibrate_thresholds(calibration_check)
-        export_calibration_plot_data(calibration_check, low_ms=low_ms, high_ms=high_ms)
     else:
         with open(classification) as f:
             classified_ips = {row["ip"] for row in csv.DictReader(f)}
         low_ms, high_ms = calibrate_thresholds(edge_check, only_ips=classified_ips)
-        export_calibration_plot_data(edge_check, only_ips=classified_ips, low_ms=low_ms, high_ms=high_ms)
 
     by_range = {}
     with open(classification) as f:
