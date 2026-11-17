@@ -11,10 +11,8 @@ Usa los mismos datos y criterios que summarize_scenarios.py:
   * Umbrales: los de calibrate_thresholds() (percentil 99 de capa 7 y
     percentil 10 de Global Accelerator).
 
-La figura muestra la distribución acumulada de TLS-TCP de cada grupo, los dos
-umbrales con la zona ambigua entre ellos y un eje superior con la distancia
-máxima equivalente, calculada con la misma conversión que Hunter:
-d = (RTT / 2) * (c / n), n = 1.468.
+La figura muestra la distribución acumulada de la duración del TLS de cada grupo, los dos
+umbrales con la zona ambigua entre ellos.
 
 El texto del SVG se guarda como texto (svg.fonttype = "none"), de modo que al
 incluirlo en la tesis con \\includesvg se compone con la tipografía del documento.
@@ -45,8 +43,6 @@ from src.providers.summarize_scenarios import (
     vantage_edge_rtt,
 )
 
-# Conversión de Hunter: km por milisegundo de RTT
-KM_PER_MS = 299_792.458 / 1.468 / 2 / 1000
 X_MIN_MS, X_MAX_MS = 2, 1000
 COLOR_LAYER7 = "#0072B2"
 COLOR_LAYER4 = "#D55E00"
@@ -96,9 +92,6 @@ def plot_tls_tcp_calibration(outfile=TLS_TCP_CALIBRATION_FIGURE_FILEPATH):
     ax.set_ylabel("Cumulative fraction of connections")
     ax.grid(True, which="both", alpha=0.25)
 
-    top = ax.secondary_xaxis("top", functions=(lambda ms: ms * KM_PER_MS, lambda km: km / KM_PER_MS))
-    top.set_xlabel("Maximum distance between the IP-level endpoint and the TLS endpoint (km)", fontsize=8)
-    top.tick_params(labelsize=8)
 
     fig.legend(fontsize=8, loc="lower center", ncol=1, frameon=False, bbox_to_anchor=(0.5, 0))
     fig.tight_layout(rect=(0, 0.17, 1, 1))
@@ -109,9 +102,9 @@ def plot_tls_tcp_calibration(outfile=TLS_TCP_CALIBRATION_FIGURE_FILEPATH):
     print(f"Figura guardada en {outfile}")
     print(f"  Mediana del handshake TCP hacia los bordes de capa 7: {vantage_edge_rtt(source, only_ips):.1f} ms")
     print(f"  Capa 7: n={len(layer7)}, mediana={np.median(layer7):.1f} ms, "
-          f"umbral bajo={low_ms:.1f} ms (~{low_ms * KM_PER_MS:,.0f} km)")
+          f"umbral bajo={low_ms:.1f} ms")
     print(f"  Global Accelerator: n={len(layer4)}, mediana={np.median(layer4):.1f} ms, "
-          f"umbral alto={high_ms:.1f} ms (~{high_ms * KM_PER_MS:,.0f} km)")
+          f"umbral alto={high_ms:.1f} ms")
     print(f"  Capa 7 por encima de {high_ms:.1f} ms: {int((layer7 >= high_ms).sum())}; "
           f"Global Accelerator por debajo de {low_ms:.1f} ms: {int((layer4 <= low_ms).sum())}")
     return outfile
