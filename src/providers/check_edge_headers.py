@@ -149,3 +149,7 @@ def check_edge_headers(check_all=False, infile=ANYCAST_PROVIDER_CLASSIFICATION_F
                     *[f"h_{h}" for h in HEADERS_TO_KEEP]])
         w.writerows(rows)
     print(f"Resultados en {outfile}", file=sys.stderr)
+    l7_tcp = sorted(float(r[10]) for r in rows if r[8] and r[10] not in ("", None))
+    if l7_tcp:
+        print(f"Mediana del handshake TCP hacia los bordes de capa 7: {l7_tcp[len(l7_tcp) // 2]:.1f} ms "
+              f"(debe ser de pocos ms para que la duración del TLS separe los escenarios)", file=sys.stderr)

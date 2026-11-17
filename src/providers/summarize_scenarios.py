@@ -48,6 +48,13 @@ from src.utils.constants import (
 
 LOW_PERCENTILE, HIGH_PERCENTILE = 0.99, 0.10
 MIN_CALIBRATION_SAMPLES = 20
+# La duración del establecimiento de TLS (tls_minus_tcp_ms = time_appconnect -
+# time_connect) incluye un RTT completo entre el punto de observación y el TLS
+# endpoint. Solo separa los escenarios si el punto de observación está cerca de
+# los bordes de los proveedores: se exige que la mediana del handshake TCP de
+# las conexiones con cabeceras de capa 7 (terminadas en el borde) no supere este
+# valor. En la calibración original fue de 4,5 ms.
+MAX_VANTAGE_EDGE_RTT_MS = 15.0
 DEFAULT_LOW_MS, DEFAULT_HIGH_MS = 45.0, 65.0
 
 AT_ENDPOINT = "(a/c) TLS en el extremo IP"
@@ -83,8 +90,36 @@ def calibration_samples(edge_check=ANYCAST_EDGE_HEADERS_CHECK_FILEPATH, only_ips
     return sorted(l7), sorted(l4)
 
 
+def vantage_edge_rtt(edge_check=ANYCAST_EDGE_HEADERS_CHECK_FILEPATH, only_ips=None):
+    """Mediana del handshake TCP de las conexiones con cabeceras de capa 7, es
+    decir, el RTT aproximado entre el punto de observación y los bordes."""
+    rtts = []
+    with open(edge_check) as f:
+        for row in csv.DictReader(f):
+            if (only_ips is None or row["ip"] in only_ips) and responded(row) \
+                    and row["edge_product"] and row["tcp_ms"]:
+                rtts.append(float(row["tcp_ms"]))
+    rtts.sort()
+    return rtts[len(rtts) // 2] if rtts else None
+
+
+def vantage_is_valid(edge_check=ANYCAST_EDGE_HEADERS_CHECK_FILEPATH, only_ips=None):
+    rtt = vantage_edge_rtt(edge_check, only_ips)
+    if rtt is None or rtt > MAX_VANTAGE_EDGE_RTT_MS:
+        print(f"Aviso: la mediana del handshake TCP hacia los bordes de capa 7 es "
+              f"{'desconocida' if rtt is None else f'{rtt:.1f} ms'} (máximo {MAX_VANTAGE_EDGE_RTT_MS:.0f} ms). "
+              f"La duración del TLS incluye ese RTT, así que estas medidas no permiten separar "
+              f"los escenarios: repite la comprobación desde una red cercana a los bordes.")
+        return False
+    print(f"Punto de observación válido: mediana del handshake TCP hacia los bordes {rtt:.1f} ms")
+    return True
+
+
 def calibrate_thresholds(edge_check=ANYCAST_EDGE_HEADERS_CHECK_FILEPATH, only_ips=None):
-    """Umbrales de TLS-TCP a partir de los casos de escenario conocido."""
+    """Umbrales de la duración del TLS a partir de los casos de escenario conocido."""
+    if not vantage_is_valid(edge_check, only_ips):
+        print("Se usan los umbrales por defecto.")
+        return DEFAULT_LOW_MS, DEFAULT_HIGH_MS
     l7, l4 = calibration_samples(edge_check, only_ips)
     if len(l7) < MIN_CALIBRATION_SAMPLES or len(l4) < MIN_CALIBRATION_SAMPLES:
         print(f"Aviso: muestras insuficientes para calibrar (capa 7 n={len(l7)}, "
@@ -93,7 +128,7 @@ def calibrate_thresholds(edge_check=ANYCAST_EDGE_HEADERS_CHECK_FILEPATH, only_ip
         return DEFAULT_LOW_MS, DEFAULT_HIGH_MS
     low = percentile(l7, LOW_PERCENTILE)
     high = percentile(l4, HIGH_PERCENTILE)
-    print(f"Calibración TLS-TCP: capa 7 n={len(l7)} -> umbral bajo {low:.1f} ms "
+    print(f"Calibración de la duración del TLS: capa 7 n={len(l7)} -> umbral bajo {low:.1f} ms "
           f"(p{LOW_PERCENTILE * 100:.0f}); Global Accelerator n={len(l4)} -> umbral alto {high:.1f} ms "
           f"(p{HIGH_PERCENTILE * 100:.0f})")
     if low >= high:

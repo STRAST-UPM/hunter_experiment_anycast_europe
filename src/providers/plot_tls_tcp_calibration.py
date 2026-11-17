@@ -1,6 +1,7 @@
 """
-Genera la figura de calibración de la diferencia entre los tiempos de
-establecimiento de TLS y de TCP (capítulo 4 de la tesis) como SVG.
+Genera la figura de calibración de la duración del establecimiento de TLS
+(capítulo 4 de la tesis) como SVG. No se genera si el punto de observación no
+es válido (ver MAX_VANTAGE_EDGE_RTT_MS en summarize_scenarios.py).
 
 Usa los mismos datos y criterios que summarize_scenarios.py:
   * Fuente: ANYCAST_EDGE_HEADERS_CALIBRATION_FILEPATH si existe; si no, la
@@ -40,6 +41,8 @@ from src.providers.summarize_scenarios import (
     HIGH_PERCENTILE,
     calibration_samples,
     calibrate_thresholds,
+    vantage_is_valid,
+    vantage_edge_rtt,
 )
 
 # Conversión de Hunter: km por milisegundo de RTT
@@ -62,6 +65,9 @@ def calibration_source(classification=ANYCAST_PROVIDER_CLASSIFICATION_FILEPATH,
 def plot_tls_tcp_calibration(outfile=TLS_TCP_CALIBRATION_FIGURE_FILEPATH):
     source, only_ips = calibration_source()
     print(f"Figura de calibración con {os.path.basename(source)}")
+    if not vantage_is_valid(source, only_ips):
+        print("No se genera la figura: las medidas no son válidas para la calibración.")
+        return None
     low_ms, high_ms = calibrate_thresholds(source, only_ips=only_ips)
     layer7, layer4 = (np.array(v) for v in calibration_samples(source, only_ips))
 
@@ -86,7 +92,7 @@ def plot_tls_tcp_calibration(outfile=TLS_TCP_CALIBRATION_FIGURE_FILEPATH):
     ax.set_xscale("log")
     ax.set_xlim(X_MIN_MS, X_MAX_MS)
     ax.set_ylim(0, 1.02)
-    ax.set_xlabel("TLS handshake time − TCP handshake time (ms)")
+    ax.set_xlabel("Duration of the TLS handshake (ms)")
     ax.set_ylabel("Cumulative fraction of connections")
     ax.grid(True, which="both", alpha=0.25)
 
@@ -101,6 +107,7 @@ def plot_tls_tcp_calibration(outfile=TLS_TCP_CALIBRATION_FIGURE_FILEPATH):
     plt.close(fig)
 
     print(f"Figura guardada en {outfile}")
+    print(f"  Mediana del handshake TCP hacia los bordes de capa 7: {vantage_edge_rtt(source, only_ips):.1f} ms")
     print(f"  Capa 7: n={len(layer7)}, mediana={np.median(layer7):.1f} ms, "
           f"umbral bajo={low_ms:.1f} ms (~{low_ms * KM_PER_MS:,.0f} km)")
     print(f"  Global Accelerator: n={len(layer4)}, mediana={np.median(layer4):.1f} ms, "
